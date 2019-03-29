@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# Don't forget set here count of HDD in RAID!
+#DRIVES_COUNT=3
+#===========================================================================
+
+STATE_OK=0
+STATE_WARNING=1
+STATE_CRITICAL=2
+STATE_UNKNOWN=3
+#STATE_DEPENDENT=4
+
+	
+RetStr=`hpacucli 2>/dev/null 'controller all show config'`
+RetString=`echo  "$RetStr" |awk '{ FS = "[,]|[)]"}/physicaldrive/{ print $4 }' |sort -u| awk '{ ORS = ""}{ print $0 }' |tr -d [:punct:]`
+InfoString=`echo "$RetStr" |grep logicaldrive`
+
+
+if [ -z $RetString ];
+	then echo "$STATE_UNKNOWN#/opt/compaq/hpacucli/bld/hpacucli does not exist, please install it";
+	else if [ $RetString = "OK" ];
+		then echo "$STATE_OK#Raid OK$InfoString";exit $STATE_OK;
+		else echo "$STATE_CRITICAL#Raid Failed$InfoString";exit $STATE_CRITICAL;fi;fi 2>/dev/null;
+
+
+
